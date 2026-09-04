@@ -1,0 +1,180 @@
+{
+  "agent": "GitHub Copilot CLI",
+  "agent_protocol": "one non-interactive run per instance; automatic model selection",
+  "config": "default",
+  "dataset": "princeton-nlp/SWE-bench_Lite",
+  "evaluation": "published FAIL_TO_PASS tests after agent completion; not Docker SWE-bench evaluation",
+  "results": [
+    {
+      "agent_elapsed_seconds": 107.651,
+      "agent_exit": 0,
+      "base_commit": "6995257cf470d2143ad1683824962de4071c0eb7",
+      "files_changed_before_test_patch": [
+        "src/_pytest/assertion/rewrite.py"
+      ],
+      "instance_id": "pytest-dev__pytest-11143",
+      "problem_sha256": "d9ed54b67e037ab7dd1c4fbd64a530251f98d8eac2cbbd9e41956232e2d1a15c",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "ac7917b3fc8ece1dcdc386e506ca0f85153df928912f15cf264c46b3e08565f6",
+      "tool_payload_sha256": "b9dc657de3ef5a3489979ae46bb256b5ddb4b9b17db90180699627ab34bea05f",
+      "tool_result_bytes": 67998,
+      "tool_result_count": 27
+    },
+    {
+      "agent_elapsed_seconds": 78.09,
+      "agent_exit": 0,
+      "base_commit": "2f7415cfbc4b6ca62f9013f1abd27136f46b9653",
+      "files_changed_before_test_patch": [
+        "src/_pytest/pathlib.py"
+      ],
+      "instance_id": "pytest-dev__pytest-11148",
+      "problem_sha256": "162b684e380a7530185eade0f4ede569c02e98697a631516fe77fb5f90cdcc40",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "2de425c018454ccdc21c39faab9d52436f7acfbde774b65f5df24354881fd6d6",
+      "tool_payload_sha256": "1534098fc587eac4a6abb5bd528818799f6dc47e070a38e85c6d645c40e51f87",
+      "tool_result_bytes": 82597,
+      "tool_result_count": 33
+    },
+    {
+      "agent_elapsed_seconds": 145.348,
+      "agent_exit": 0,
+      "base_commit": "4964b468c83c06971eb743fbc57cc404f760c573",
+      "files_changed_before_test_patch": [
+        "src/_pytest/tmpdir.py"
+      ],
+      "instance_id": "pytest-dev__pytest-8365",
+      "problem_sha256": "73b11b4c0bfb6a3212304f282d67eb116cfa2f55f936fd5c5d66c55756aaa81e",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "0164e4bc25dec4af25eac2025b51cfdc426b234640daaa7320e62bb255a8be5d",
+      "tool_payload_sha256": "9dd6e66cc89644507e8ba85a102c6a923063932bbdeca8819162db4552d36223",
+      "tool_result_bytes": 62737,
+      "tool_result_count": 38
+    },
+    {
+      "agent_elapsed_seconds": 84.633,
+      "agent_exit": 0,
+      "base_commit": "69356d20cfee9a81972dcbf93d8caf9eabe113e8",
+      "files_changed_before_test_patch": [
+        "src/_pytest/python.py"
+      ],
+      "instance_id": "pytest-dev__pytest-8906",
+      "problem_sha256": "47ea4dd23f48fbc0b6d2ef54cea7796d3bc7456d52c5a93be26824b9c1a81d70",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "346c803c0c386e93a18a11c5b32aebce287ee6190aa2b40db7a639b6b744e824",
+      "tool_payload_sha256": "633b63093165f758afa948760fd81271c7f3aa198ee2c4f237488a0af1542bce",
+      "tool_result_bytes": 54438,
+      "tool_result_count": 22
+    },
+    {
+      "agent_elapsed_seconds": 131.182,
+      "agent_exit": 0,
+      "base_commit": "e2ee3144ed6e241dea8d96215fcdca18b3892551",
+      "files_changed_before_test_patch": [
+        "src/_pytest/_code/source.py"
+      ],
+      "instance_id": "pytest-dev__pytest-9359",
+      "problem_sha256": "4ecb4b433b57d2b16a49a28e6dec7df49af58d83fe8740094e8571bf755747d0",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "44dafb9d328533b6fdd3cc6a57c2e3ed0cd4f1fb5ec23f116aac47508eac4662",
+      "tool_payload_sha256": "22c49bc025c320c266d6ed06cc81d80816121330d5117561cc1f3c959acfc206",
+      "tool_result_bytes": 79023,
+      "tool_result_count": 39
+    },
+    {
+      "agent_elapsed_seconds": 150.041,
+      "agent_exit": 0,
+      "base_commit": "56bf819c2f4eaf8b36bd8c42c06bb59d5a3bfc0f",
+      "files_changed_before_test_patch": [
+        "src/_pytest/nodes.py"
+      ],
+      "instance_id": "pytest-dev__pytest-7220",
+      "problem_sha256": "a4106396b6e1d34ae148b176a00895e7a24a1ff2a047646606f748e313ce48e1",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "adc9066a2d467a6190edaf765b1843ed03011dacfd7bc48732cdfdf1e8d67760",
+      "tool_payload_sha256": "9b5a59e77509a917dddbb55bd275fa06ba3f8856ae09d713ad651000bea5fde5",
+      "tool_result_bytes": 108645,
+      "tool_result_count": 51
+    },
+    {
+      "agent_elapsed_seconds": 83.57,
+      "agent_exit": 0,
+      "base_commit": "e6e300e729dd33956e5448d8be9a0b1540b4e53a",
+      "files_changed_before_test_patch": [
+        "src/_pytest/skipping.py"
+      ],
+      "instance_id": "pytest-dev__pytest-7432",
+      "problem_sha256": "f8453cfb1e017be81d0fd5ac8fc5b6faeff6045f71763c81e7fd51537a81ef31",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "5e498d11d5bffa2d19f34627d2aa16ecadd805d313fc0fec5f197373d1df9937",
+      "tool_payload_sha256": "0df6782fb417c9c6a83809a2d44e09bcee1de16cabdfcead6ed6463db11a1d45",
+      "tool_result_bytes": 69233,
+      "tool_result_count": 27
+    },
+    {
+      "agent_elapsed_seconds": 150.816,
+      "agent_exit": 0,
+      "base_commit": "7f7a36478abe7dd1fa993b115d22606aa0e35e88",
+      "files_changed_before_test_patch": [
+        "src/_pytest/skipping.py"
+      ],
+      "instance_id": "pytest-dev__pytest-7490",
+      "problem_sha256": "9a5e8c33368dc3bbe9c5f03d3136a574cebede61fea6c575d39ddf108b92d947",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "fe5323cfe9d6be9648be22ffb13a95079c6e17c13f09987f4c1b8589d27c690c",
+      "tool_payload_sha256": "949e4149d5a1917faafaad2512e3735827e138283c74516ae758c2d8313fc1c3",
+      "tool_result_bytes": 95264,
+      "tool_result_count": 34
+    },
+    {
+      "agent_elapsed_seconds": 207.869,
+      "agent_exit": 0,
+      "base_commit": "7b77fc086aab8b3a8ebc890200371884555eea1e",
+      "files_changed_before_test_patch": [
+        "src/_pytest/mark/evaluate.py"
+      ],
+      "instance_id": "pytest-dev__pytest-7373",
+      "problem_sha256": "cd8053cca6079b776ea53538580a40f748a5813c82f42208d250af90a2cc5797",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "719fb3fae7ff7c462720a835a75f832c88065202953d4db1ced554f3ee94c519",
+      "tool_payload_sha256": "3a4087f3afec8aa25fb334ec6fb5a1f203fa730b9f2803274d0e0c5eea3a3d57",
+      "tool_result_bytes": 52962,
+      "tool_result_count": 36
+    },
+    {
+      "agent_elapsed_seconds": 143.421,
+      "agent_exit": 0,
+      "base_commit": "450d2646233c670654744d3d24330b69895bb9d2",
+      "files_changed_before_test_patch": [
+        "src/_pytest/_code/code.py"
+      ],
+      "instance_id": "pytest-dev__pytest-5413",
+      "problem_sha256": "d07de38ad8ef1399524db3d22cd5127e01ba3242e1c48cc37d5b397598d1b94d",
+      "repo": "pytest-dev/pytest",
+      "target_test_exit": 0,
+      "target_test_passed": true,
+      "test_patch_sha256": "96a694cd889a4b1597e144bc9c0a127960111eab7621b805711b8ebe5ccad8f2",
+      "tool_payload_sha256": "44b7d238edaea1b868d6a6a520a37d2fb7c39ee003a03f6a996a43c2ae901877",
+      "tool_result_bytes": 83190,
+      "tool_result_count": 36
+    }
+  ],
+  "split": "test"
+}

@@ -1,0 +1,104 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 7
+Date: 2026-09-02
+Source: Captured from terminal output during the experiment.
+
+GOAL
+Measure the accepted ASCII SimHash fast path through a real coding-agent production route rather than an internal SimHash function.
+
+PRODUCTION ROUTE
+compress_anthropic_live_zone
+  -> JSON tool_result detection
+  -> SmartCrusher::crush
+  -> SmartCrusher::crush_array
+  -> compute_optimal_k
+  -> count_unique_simhash
+
+WORKLOAD
+Anthropic request with one user tool_result containing a deterministic homogeneous JSON array. Fields match the existing live_zone_dispatch integration fixture: id, status, and repeat-pattern value. Sizes: 200, 1,000, and 5,000 records. Requests were constructed outside Criterion's timed loop.
+
+PREDEFINED ACCEPTANCE RULE
+- Exact legacy/candidate output digest, byte length, strategy, and token-count equality.
+- p < 0.05 and at least 10% lower central latency at 1,000 and 5,000 records.
+- No more than 5% regression at 200 records.
+- Do not infer peak memory from Criterion latency.
+
+BASELINE METHOD
+The production simhash ASCII condition was temporarily changed from:
+  if text.is_ascii()
+to the compile-time-false condition:
+  if false && text.is_ascii()
+This forced ASCII records through the unchanged character-based fallback. Criterion then saved the coding-agent-legacy baseline. The accepted condition was restored immediately afterward, and all 38 adaptive-sizer tests passed before the candidate benchmark ran. The temporary condition is not present in final source.
+
+LEGACY COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- coding_agent_live_zone --save-baseline coding-agent-legacy
+
+CANDIDATE COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- coding_agent_live_zone --baseline coding-agent-legacy
+
+EXACT BEHAVIOR PROOF
+Records: 200
+Input SHA-256:  d8aa185616cc95543e9e7fad81faed03b92e315de9aa05a5c162e40f53c6386b
+Output SHA-256: 6e22c8bce2b69135066bb1a73feadebacb5d786831bbdcb2f64456e59fe2a5e4
+Output bytes: 5,345
+Strategy: smart_crusher
+Original tokens: 2,940
+Compressed tokens: 1,410
+Legacy/candidate proof: identical
+
+Records: 1,000
+Input SHA-256:  b7bf3483a85a60ee6942ffac47267603692224c3ee170f6bb330c4659017b7e4
+Output SHA-256: e502c16c2886e48436a9a1dd1bfc8213db9b62877e3176778c4014e0f3034fe8
+Output bytes: 26,146
+Strategy: smart_crusher
+Original tokens: 14,826
+Compressed tokens: 7,124
+Legacy/candidate proof: identical
+
+Records: 5,000
+Input SHA-256:  24894f775f49b554a6c1119e873e46111ccf2d751c18f1d03bf69f3717ed8aa6
+Output SHA-256: 52a7e4bc66e947dfd25cba89263d49352e161a01dddda9c8861698aef1bc661e
+Output bytes: 134,146
+Strategy: smart_crusher
+Original tokens: 75,397
+Compressed tokens: 36,839
+Legacy/candidate proof: identical
+
+LATENCY RESULTS
+Records  Legacy 95% CI       Legacy central  Candidate 95% CI    Candidate central  Criterion change (95% CI)          p
+200      1.4123-1.4184 ms    1.4152 ms       1.1101-1.1144 ms    1.1122 ms          -22.884% to -21.439% (-22.047%)  0.00
+1,000    7.0878-7.1754 ms    7.1215 ms       5.5810-5.5971 ms    5.5889 ms          -22.119% to -21.122% (-21.520%)  0.00
+5,000    37.010-37.475 ms     37.208 ms        29.689-30.057 ms     29.824 ms           -20.563% to -18.990% (-19.846%)  0.00
+
+Criterion classified every case as improved.
+
+WARNINGS AND OUTLIERS
+- Legacy 200-record case: Criterion warned 100 samples would exceed the default five-second target and suggested 7.2 seconds. It still collected 100 samples. Six outliers: three high mild, three high severe.
+- Candidate 200-record case: same warning, suggested 5.6 seconds. It still collected 100 samples. Ten outliers: two low severe, six low mild, two high mild.
+- Legacy 1,000: three outliers. Candidate 1,000: one outlier.
+- Legacy 5,000: seven outliers. Candidate 5,000: eleven outliers.
+- Change intervals remain entirely below zero for all cases.
+
+VALIDATION COMMANDS AND RESULTS
+cargo test -p headroom-core --lib adaptive_sizer --no-default-features
+Result: 38 passed; 0 failed.
+
+cargo test -p headroom-core --test live_zone_dispatch json_tool_result_routes_to_smart_crusher --no-default-features -- --exact
+Result: 1 passed; 0 failed.
+
+cargo fmt --all -- --check
+Result: passed.
+
+cargo clippy -p headroom-core --lib --bench adaptive_sizer --no-default-features -- -D warnings
+Result: passed.
+
+MEMORY ASSESSMENT
+Peak memory was not measured. The ASCII path removes Vec<char> construction and one temporary String allocation per 4-gram, so it reduces allocation count and transient allocation traffic by construction. No numeric memory claim is made.
+
+LIMITATIONS
+- Criterion compared sequential saved-baseline runs on one Apple Silicon machine, not interleaved process executions.
+- The workload is deterministic and matches a real integration fixture shape, but its records are synthetic and homogeneous.
+- Only the SmartCrusher JSON-array route was measured. SearchCompressor and LogCompressor also call adaptive sizing but were not tested here.
+- Default Criterion timing produced warnings for the 200-record cases, although 100 samples and statistical intervals were still collected.
+
+DECISION
+Accept the end-to-end performance claim for this workload. Exact behavior proof passed at every size. Central latency improved 22.0% at 200 records, 21.5% at 1,000 records, and 19.8% at 5,000 records, satisfying every predefined threshold.

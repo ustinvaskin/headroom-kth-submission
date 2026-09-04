@@ -1,0 +1,99 @@
+{
+  "totalPremiumRequestCost": 1,
+  "totalUserRequests": 1,
+  "totalNanoAiu": 1728207000,
+  "tokenDetails": {
+    "input": {
+      "tokenCount": 33
+    },
+    "cache_read": {
+      "tokenCount": 274386
+    },
+    "cache_write": {
+      "tokenCount": 35775
+    },
+    "output": {
+      "tokenCount": 2370
+    }
+  },
+  "totalApiDurationMs": 41947,
+  "sessionStartTime": "2026-09-04T13:34:24.250Z",
+  "codeChanges": {
+    "linesAdded": 2,
+    "linesRemoved": 0,
+    "filesModifiedCount": 1,
+    "filesModified": [
+      "/Users/ustinvaskin/Desktop/Organized/01_Projects/Active/KTH req/headroom-adaptive-simhash/benchmarks/results/adaptive_sizer/swebench_lite_pytest_10/pytest-dev__pytest-11148/worktree/src/_pytest/pathlib.py"
+    ]
+  },
+  "modelMetrics": {
+    "gpt-5.6-luna": {
+      "requests": {
+        "count": 11,
+        "cost": 1
+      },
+      "usage": {
+        "inputTokens": 310194,
+        "outputTokens": 2370,
+        "cacheReadTokens": 274386,
+        "cacheWriteTokens": 35775,
+        "reasoningTokens": 495
+      },
+      "cacheExpiresAt": "2026-09-04T14:05:12.427Z",
+      "totalNanoAiu": 1728207000,
+      "tokenDetails": {
+        "input": {
+          "tokenCount": 33
+        },
+        "cache_read": {
+          "tokenCount": 274386
+        },
+        "cache_write": {
+          "tokenCount": 35775
+        },
+        "output": {
+          "tokenCount": 2370
+        }
+      }
+    }
+  },
+  "agentMetrics": {
+    "main": {
+      "totalApiDurationMs": 41947,
+      "totalNanoAiu": 1728207000,
+      "modelMetrics": {
+        "gpt-5.6-luna": {
+          "requests": {
+            "count": 11,
+            "cost": 1
+          },
+          "usage": {
+            "inputTokens": 310194,
+            "outputTokens": 2370,
+            "cacheReadTokens": 274386,
+            "cacheWriteTokens": 35775,
+            "reasoningTokens": 495
+          },
+          "totalNanoAiu": 1728207000,
+          "tokenDetails": {
+            "input": {
+              "tokenCount": 33
+            },
+            "cache_read": {
+              "tokenCount": 274386
+            },
+            "cache_write": {
+              "tokenCount": 35775
+            },
+            "output": {
+              "tokenCount": 2370
+            }
+          }
+        }
+      }
+    }
+  },
+  "currentModel": "gpt-5.6-luna",
+  "lastCallInputTokens": 35778,
+  "lastCallOutputTokens": 134
+}

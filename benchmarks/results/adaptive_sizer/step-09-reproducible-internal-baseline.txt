@@ -1,0 +1,42 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 9
+Date: 2026-09-02
+Source: Captured from terminal output during final analysis review.
+
+GOAL
+Make the complete count_unique_simhash headline result independently reproducible from the final tree using the default-off legacy-simhash-benchmark feature.
+
+LEGACY COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features --features legacy-simhash-benchmark -- count_unique_simhash --save-baseline adaptive-sizer-reproducible-legacy
+
+CANDIDATE COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- count_unique_simhash --baseline adaptive-sizer-reproducible-legacy
+
+RESULTS
+Distribution  Items  Legacy central  Candidate central  Criterion change 95% CI (central)       p
+repetitive    100    445.42 us       314.70 us          -29.931% to -29.152% (-29.527%)  0.00
+mixed         100    727.23 us       511.82 us          -30.238% to -29.608% (-29.921%)  0.00
+diverse       100    1.0202 ms       726.58 us          -30.182% to -28.332% (-29.323%)  0.00
+repetitive    1,000  4.5408 ms       3.1829 ms          -30.239% to -29.567% (-29.905%)  0.00
+mixed         1,000  7.4437 ms       5.1691 ms          -31.150% to -30.068% (-30.558%)  0.00
+diverse       1,000  10.294 ms        7.2873 ms          -29.806% to -28.461% (-29.210%)  0.00
+repetitive    5,000  22.761 ms        16.110 ms          -29.823% to -28.477% (-29.223%)  0.00
+mixed         5,000  37.686 ms        26.932 ms          -28.951% to -28.044% (-28.536%)  0.00
+diverse       5,000  54.098 ms        39.340 ms          -27.772% to -26.694% (-27.279%)  0.00
+
+5,000-ITEM CONFIDENCE INTERVALS
+Distribution  Legacy 95% CI       Candidate 95% CI
+repetitive    22.670-22.858 ms    15.999-16.255 ms
+mixed         37.556-37.819 ms    26.817-27.091 ms
+diverse       53.942-54.260 ms    39.089-39.661 ms
+
+WARNINGS
+- Legacy diverse/100 could not complete 100 samples in the default target and suggested 5.1 seconds; it still collected 100 samples.
+- Legacy diverse/5000 similarly suggested 5.4 seconds or 90 samples; it still collected 100 samples.
+- Candidate cases contained several outliers, including six high severe at diverse/100.
+- Every Criterion change interval remained entirely below zero.
+
+NOTE ON EXTRA OUTPUT
+The adaptive_sizer Criterion executable initializes all registered groups before applying the name filter. E2E_PROOF lines therefore appeared after the selected count_unique_simhash cases, but no coding_agent_live_zone timing cases ran in these commands.
+
+DECISION
+Use these values for the internal-operation claim in ANALYSIS.md. At 5,000 records, complete count_unique_simhash latency fell 29.2% for repetitive, 28.5% for mixed, and 27.3% for diverse inputs.

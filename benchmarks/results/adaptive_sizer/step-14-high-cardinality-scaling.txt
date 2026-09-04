@@ -1,0 +1,65 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 14
+Date: 2026-09-03
+Source: Separate Criterion high-cardinality benchmark after the accepted ASCII fast path.
+
+GOAL
+Determine the input size at which the previously rejected O(n²) greedy
+clustering loop becomes material to the complete optimized `count_unique_simhash`
+operation.
+
+PREDECLARED RULE
+Treat greedy clustering as material when its independently measured central
+latency reaches at least 20% of the independently measured full-operation
+central latency. Component timings do not sum exactly, so this is a screening
+threshold, not an additive CPU profile.
+
+HARNESS
+`crates/headroom-core/benches/adaptive_sizer_large.rs` is a separate Criterion
+target so routine 100/1k/5k runs do not initialize large fixtures. It measures:
+1. full production `count_unique_simhash`;
+2. SimHash generation over the same records;
+3. greedy clustering over precomputed fingerprints.
+
+The deterministic ASCII fixture is high diversity. Before every timed group it
+asserts that all items are separate representatives and that the observed
+comparison count equals `n(n-1)/2` exactly.
+
+COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer_large --no-default-features
+
+FIXTURE PROOF
+Items   Clusters   Exact comparisons
+5,000   5,000      12,497,500
+10,000  10,000     49,995,000
+12,500  12,500     78,118,750
+15,000  15,000     112,492,500
+25,000  25,000     312,487,500
+
+RESULTS
+Items   Full operation (95% CI)       Greedy clustering (95% CI)   Share
+5,000   38.006 ms (37.898-38.121)    3.382 ms (3.378-3.388)       8.9%
+10,000  83.503 ms (83.279-83.732)    13.470 ms (13.408-13.548)    16.1%
+12,500  109.178 ms (108.819-109.619) 21.035 ms (20.945-21.147)   19.3%
+15,000  136.416 ms (135.941-137.009) 31.007 ms (30.515-31.737)   22.7%
+25,000  262.595 ms (261.689-263.725) 85.813 ms (85.122-86.880)   32.7%
+
+INTERPRETATION
+The greedy scan crosses the predeclared 20% materiality threshold between
+12,500 and 15,000 distinct, high-diversity records. It is therefore still not
+the best primary target for the original 100-5,000-record workloads, where the
+ASCII SimHash fast path improves the dominant cost. At unusually large and
+diverse payloads, exact multi-index clustering becomes a justified future
+optimization candidate.
+
+LIMITATIONS
+- This is a deterministic ASCII worst case, not a representative production
+  traffic sample.
+- Components were benchmarked independently, so the share is a screening ratio.
+- The benchmark uses 20 Criterion samples and a shorter measurement window to
+  keep high-cardinality cases practical.
+- Peak memory was not measured.
+
+CHARTS
+Copied Criterion SVGs are in:
+- `benchmarks/results/adaptive_sizer/charts/large-diverse-full-scaling.svg`
+- `benchmarks/results/adaptive_sizer/charts/large-diverse-greedy-scaling.svg`

@@ -1,0 +1,32 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 4
+Date: 2026-09-02
+Source: Reconstructed from EXPERIMENT_LOG.md.
+
+DECISION RULE SET BEFORE MEASUREMENT
+- Retain indexed clustering if clustering exceeds 20% of whole-function time at 5,000 items.
+- Reject indexed clustering as the main extension if SimHash generation accounts for at least 80%.
+
+COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- components --save-baseline component-greedy
+
+CENTRAL TIME ESTIMATES
+Distribution  Items  Whole       SimHash generation  Greedy clustering
+repetitive    100    462.49 us   458.99 us           0.093 us
+repetitive    1,000  4.6420 ms   4.6810 ms           0.00070 ms
+repetitive    5,000  23.296 ms   23.218 ms           0.00339 ms
+mixed         100    751.49 us   736.34 us           0.667 us
+mixed         1,000  7.5033 ms   7.4107 ms           0.04377 ms
+mixed         5,000  38.813 ms   36.971 ms           0.89799 ms
+diverse       100    1.0157 ms   1.0089 ms           0.00211 ms
+diverse       1,000  10.271 ms   10.089 ms           0.14724 ms
+diverse       5,000  53.909 ms   50.459 ms           3.4102 ms
+
+5,000-ITEM SHARES
+diverse: SimHash approximately 93.6%; clustering approximately 6.3%
+mixed: SimHash approximately 95.3%; clustering approximately 2.3%
+
+CAVEAT
+Components were measured independently and do not sum exactly because of run-to-run variation, allocation, collection, and benchmark overhead.
+
+DECISION
+Reject indexed clustering as the main extension at measured sizes. Investigate SimHash generation, which dominates measured runtime.

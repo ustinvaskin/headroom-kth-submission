@@ -1,0 +1,77 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 12
+Date: 2026-09-02
+Source: Captured from standard Criterion legacy/candidate route benchmarks after route-harness validation.
+
+GOAL
+Measure the final ASCII SimHash implementation through all three production callers of adaptive sizing. Step 7/8 covered SmartCrusher; this step covers the previously unmeasured LogCompressor and SearchCompressor live-zone routes.
+
+ENVIRONMENT
+macOS 26.6.2, Apple M4 MacBook Air, 24 GB memory
+Rust/Cargo 1.95.0
+Criterion 0.8.2 default measurement configuration
+
+WORKLOADS
+Each workload is a valid Anthropic request with one `tool_result` block. Requests are constructed outside Criterion's timed loop.
+
+LogCompressor:
+- timestamped ASCII build-output lines at 200, 1,000, and 5,000 records;
+- a 1,000-record Unicode control using accented Latin and Japanese text.
+
+SearchCompressor:
+- ASCII ripgrep-style `path:line:content` matches across ten files at 200, 1,000, and 5,000 records;
+- a 1,000-record Unicode control using accented Latin and Japanese text.
+
+The ten-file search fixture stays below the default 15-file cap, so all generated matches reach the adaptive-sizing stage. The harness asserts `Modified`, the expected `log_compressor` or `search_compressor` strategy, and lower output bytes and tokens before timing each case.
+
+COMMANDS
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features \
+  --features legacy-simhash-benchmark -- log_compressor_live_zone \
+  --save-baseline log-route-legacy
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features \
+  -- log_compressor_live_zone --baseline log-route-legacy
+
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features \
+  --features legacy-simhash-benchmark -- search_compressor_live_zone \
+  --save-baseline search-route-legacy
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features \
+  -- search_compressor_live_zone --baseline search-route-legacy
+
+EXACT BEHAVIOR PROOF
+Legacy and optimized runs emitted identical input SHA-256 values, output SHA-256 values, output byte lengths, compressor strategies, and original/compressed token counts for all eight route fixtures.
+
+LogCompressor output SHA-256:
+- ascii-200: ab0c36d5ac03b3f67f57e8792bd178e9b24de5a61a325dddee10f023ab160312
+- ascii-1000: 24a6c75cc3e1f9a32d62506ad3cb43d2b81a04f2e347e8cc3459772f3488b2d0
+- ascii-5000: 2f2ba1e9dceffa292bd693db569e50bddc591c123eeb33dbb2b6368e5b58b161
+- unicode-1000: a3e725da1e7debba0674ee2d7b421a19cfe278bf90e36998f2dbdde37b4e1daf
+
+SearchCompressor output SHA-256:
+- ascii-200: 841f7a27c4898a6d819f85cba5e7431fd888335f5bafe202f6fce97c2018c80f
+- ascii-1000: 760b1e9ff3caab6abca96e26962fa96c60384ee5e2e049655cb0c1dd4ee33762
+- ascii-5000: 925b1f164d75dae01adfd94c70bd4fd8bf907a4f7a4216faf0859af9b0d550b9
+- unicode-1000: 67e9752f8e0387cbc655fa4ba50c5cfde11d18dab5946b6ff2c876219b2c134c
+
+RESULTS
+Route                    Fixture       Central change      95% CI                         p
+LogCompressor            ascii-200     -27.1%              -27.7% to -26.0%              < 0.05
+LogCompressor            ascii-1000    -28.2%              -28.5% to -27.9%              < 0.05
+LogCompressor            ascii-5000    -26.3%              -26.7% to -25.7%              < 0.05
+LogCompressor            unicode-1000  +0.5%               -0.5% to +1.2%               n.s.
+SearchCompressor         ascii-200     -25.2%              -25.7% to -24.5%              < 0.05
+SearchCompressor         ascii-1000    -26.9%              -27.1% to -26.7%              < 0.05
+SearchCompressor         ascii-5000    -26.6%              -27.1% to -26.3%              < 0.05
+SearchCompressor         unicode-1000  -0.1%               -1.2% to +0.7%               n.s.
+
+Criterion reported expected target-time warnings for a few 200- and 5,000-record runs but still collected 100 samples. A small number of outliers were reported. Every ASCII latency interval remained entirely below zero.
+
+INTERPRETATION
+The ASCII fast path improves full local compression latency across the SmartCrusher JSON, LogCompressor, and SearchCompressor routes without changing model-visible output. The Unicode controls do not support a speed claim and are consistent with the intended unchanged Unicode implementation.
+
+LIMITATIONS
+- Legacy and optimized runs were sequential saved-baseline runs on one Apple Silicon machine.
+- Inputs are deterministic synthetic fixtures, not a representative captured log/search corpus.
+- This measures Headroom's local routing and compression work, not LLM inference or agent task wall time.
+- Peak memory was not measured.
+
+DECISION
+Include LogCompressor and SearchCompressor in the final local-compression claim, while keeping the claim scoped to deterministic ASCII-dominant fixtures and preserving the stated limitations.

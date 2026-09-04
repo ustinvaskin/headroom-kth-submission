@@ -1,0 +1,79 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 13
+Date: 2026-09-03
+Source: Direct GitHub Copilot CLI runs through isolated legacy and optimized Headroom builds.
+
+GOAL
+Supplement replay evidence with a real coding-agent task-success A/B. This does not replace the controlled route benchmarks; it asks whether the small, exact compression change changes observed task success.
+
+AGENT AND ROUTING
+- GitHub Copilot CLI 1.0.82, non-interactive native subscription route.
+- Headroom OAuth status: logged in.
+- `headroom wrap copilot --subscription --native` started a local proxy for every run.
+- The Free account exposed Auto selection only. A smoke request resolved `mai-code-1.1-flash`; task runs therefore use one authenticated account and identical prompts, but not a user-pinned model.
+
+LEGACY CONTROL
+`crates/headroom-py` exposes the existing benchmark-only
+`legacy-simhash-benchmark` feature, which relays to headroom-core. Two isolated
+Python environments were built from the same source tree: legacy feature enabled
+versus default optimized path.
+
+REPRODUCTION
+uv sync --extra proxy
+uv venv .venv-legacy
+UV_PROJECT_ENVIRONMENT=.venv-legacy uv sync --extra proxy
+uv pip install --python .venv-legacy/bin/python maturin
+VIRTUAL_ENV=$PWD/.venv-legacy PATH=$PWD/.venv-legacy/bin:$PATH \
+  .venv-legacy/bin/maturin develop --features legacy-simhash-benchmark
+
+For each task and arm, copy `benchmarks/agent_tasks/<task>/` to a fresh
+temporary directory, then run the same prompt through that arm's `headroom`
+executable:
+headroom wrap copilot --subscription --native --port <unique-port> -- \
+  -C <task-copy> -p "First run python inspect_context.py. Then fix the bug in \
+  implementation.py. Modify only implementation.py and run python test_task.py \
+  before finishing." --allow-all --no-remote --output-format text
+
+Run `python3 test_task.py` afterward and compare the task copy against its
+source fixture with `diff -ru`.
+
+TASKS
+Each fresh task copy contains:
+- a deliberately failing `implementation.py`;
+- `inspect_context.py`, which prints a 300-record JSON diagnostic;
+- `test_task.py`, which initially fails and is the pass/fail oracle.
+
+The identical prompt required the diagnostic first, an implementation-only edit,
+and the test before completion. Tasks were median for even-length input, negative
+currency formatting, and slug normalization. The fixtures are in
+`benchmarks/agent_tasks/`.
+
+RESULTS
+Task       Candidate test   Legacy test   Changed files
+median     passed           passed        implementation.py only
+currency   passed           passed        implementation.py only
+slug       passed           passed        implementation.py only
+
+All six runs executed the required diagnostic. A `diff -ru` comparison against
+the source fixtures confirmed that each agent changed only implementation.py.
+
+EXPLORATORY WALL TIME
+Task       Candidate         Legacy
+median     51.0 seconds      46.1 seconds
+currency   39.4 seconds      41.5 seconds
+
+The two pairs move in opposite directions. Agent tool trajectories also differed
+despite identical prompts, and their variation exceeds the local SimHash saving.
+No agent-wall-time improvement is claimed. This is why the primary performance
+claim remains the controlled legacy/candidate compression benchmarks.
+
+LIMITATIONS
+- Three tasks, one run per arm, one machine, and Auto model selection.
+- Runs were sequential rather than randomized/interleaved.
+- Agent task output and tool trajectories are nondeterministic.
+- The result establishes matched task success, not a statistically reliable
+  success rate or end-to-end latency effect.
+
+DECISION
+Use this as direct coding-agent validation: both versions solved the same
+diagnostic-heavy repair tasks. Keep all latency claims scoped to the controlled
+local proxy/compression measurements.

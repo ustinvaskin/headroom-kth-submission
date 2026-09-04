@@ -1,0 +1,26 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 2
+Date: 2026-09-02
+Source: Reconstructed from EXPERIMENT_LOG.md.
+
+TOOLCHAIN
+cargo 1.95.0 (f2d3ce0bd 2026-03-21)
+rustc 1.95.0 (59807616e 2026-04-14)
+clippy 0.1.95 (59807616e1 2026-04-14)
+
+PATH SETUP
+PATH="$HOME/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH"
+
+FIRST ATTEMPT
+cargo test -p headroom-core adaptive_sizer --no-default-features
+
+RESULT
+Did not reach selected tests. Cargo compiled tests/kompress_parity.rs, which imports the kompress module even though that module is disabled by --no-default-features. This was classified as an unrelated integration-test configuration issue.
+
+FOCUSED COMMAND
+cargo test -p headroom-core --lib adaptive_sizer --no-default-features
+
+RESULT
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 867 filtered out
+
+DECISION
+The unchanged adaptive-sizer library baseline was clean. Proceed to a production Rust Criterion benchmark.

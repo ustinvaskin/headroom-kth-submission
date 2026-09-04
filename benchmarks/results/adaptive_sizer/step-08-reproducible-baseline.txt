@@ -1,0 +1,100 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 8
+Date: 2026-09-02
+Source: Captured from terminal output during reproducibility hardening.
+
+GOAL
+Remove the manual source-edit requirement from the Step 7 legacy comparison and regenerate the headline end-to-end results from commands supported by the final tree.
+
+REPRODUCIBILITY CHANGE
+Added a default-off Cargo feature named legacy-simhash-benchmark. When enabled, headroom-core compiles an exact preserved copy of the original character-based SimHash implementation. Normal builds compile the optimized ASCII fast path. This feature is a benchmark control and must not be enabled in production.
+
+ENVIRONMENT
+macOS 26.6.2, build 25G83
+MacBook Air, model Mac16,13
+Apple M4
+24 GB memory
+Rust/Cargo 1.95.0
+Criterion 0.8.2 default measurement configuration
+Plotters backend because Gnuplot was unavailable
+Repository checkout has no .git metadata, so a commit SHA is unavailable.
+
+CONFIGURATION COMPILE CHECKS
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features --no-run
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features --features legacy-simhash-benchmark --no-run
+Result: both passed.
+
+REPRODUCIBLE LEGACY COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features --features legacy-simhash-benchmark -- coding_agent_live_zone --save-baseline coding-agent-reproducible-legacy
+
+DEFAULT CANDIDATE COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- coding_agent_live_zone --baseline coding-agent-reproducible-legacy
+
+EXACT BEHAVIOR PROOF
+The legacy feature and default candidate produced the same proof values at every size.
+
+Records: 200
+Input SHA-256:  d8aa185616cc95543e9e7fad81faed03b92e315de9aa05a5c162e40f53c6386b
+Output SHA-256: 6e22c8bce2b69135066bb1a73feadebacb5d786831bbdcb2f64456e59fe2a5e4
+Output bytes: 5,345
+Strategy: smart_crusher
+Tokens: 2,940 -> 1,410
+
+Records: 1,000
+Input SHA-256:  b7bf3483a85a60ee6942ffac47267603692224c3ee170f6bb330c4659017b7e4
+Output SHA-256: e502c16c2886e48436a9a1dd1bfc8213db9b62877e3176778c4014e0f3034fe8
+Output bytes: 26,146
+Strategy: smart_crusher
+Tokens: 14,826 -> 7,124
+
+Records: 5,000
+Input SHA-256:  24894f775f49b554a6c1119e873e46111ccf2d751c18f1d03bf69f3717ed8aa6
+Output SHA-256: 52a7e4bc66e947dfd25cba89263d49352e161a01dddda9c8861698aef1bc661e
+Output bytes: 134,146
+Strategy: smart_crusher
+Tokens: 75,397 -> 36,839
+
+REPRODUCIBLE LATENCY RESULTS
+Records  Legacy 95% CI       Legacy central  Candidate 95% CI    Candidate central  Criterion change 95% CI (central)      p
+200      1.4105-1.4240 ms    1.4157 ms       1.1220-1.1274 ms    1.1247 ms          -21.360% to -20.534% (-20.882%)  0.00
+1,000    7.0204-7.0430 ms    7.0314 ms       5.6371-5.7280 ms    5.6752 ms          -19.827% to -18.517% (-19.288%)  0.00
+5,000    36.763-36.898 ms     36.829 ms        30.138-30.806 ms     30.438 ms           -18.143% to -16.318% (-17.353%)  0.00
+
+Criterion classified every case as improved.
+
+WARNINGS AND OUTLIERS
+- Legacy 200-record case: Criterion warned that 100 samples would exceed the default five-second target and suggested 7.1 seconds. It still collected 100 samples. Three high outliers.
+- Candidate 200-record case: same warning, suggested 5.8 seconds. It still collected 100 samples.
+- Legacy 1,000: ten high mild outliers.
+- Candidate 1,000: nine outliers, including five high severe.
+- Candidate 5,000: fifteen outliers, including eleven high severe.
+- Despite outliers, every Criterion change interval remained entirely below zero.
+
+VALIDATION
+Default optimized tests:
+cargo test -p headroom-core --lib adaptive_sizer --no-default-features
+Result: 38 passed; 0 failed.
+
+Legacy feature tests:
+cargo test -p headroom-core --lib adaptive_sizer --no-default-features --features legacy-simhash-benchmark
+Result: 38 passed; 0 failed.
+
+Formatting:
+cargo fmt --all -- --check
+Result: passed.
+
+Clippy default and feature modes:
+cargo clippy -p headroom-core --lib --bench adaptive_sizer --no-default-features -- -D warnings
+cargo clippy -p headroom-core --lib --bench adaptive_sizer --no-default-features --features legacy-simhash-benchmark -- -D warnings
+Result: both passed.
+
+INTERPRETATION
+These results supersede the Step 7 latency values for submission claims because both baseline and candidate can now be regenerated from the final source. The effect is slightly smaller than the manual-toggle run but still clears the predeclared requirement of at least 10% lower latency at 1,000 and 5,000 records.
+
+LIMITATIONS
+- Saved-baseline runs were sequential, not process-interleaved.
+- The workload is a synthetic homogeneous JSON array shaped like an existing coding-agent integration fixture.
+- This measures Headroom's local compression route, not LLM inference or complete agent task wall time.
+- No peak-memory measurement was performed.
+
+DECISION
+Use the reproducible results as the final end-to-end claim: 20.9% lower latency at 200 records, 19.3% at 1,000, and 17.4% at 5,000, with exact model-visible output equivalence.

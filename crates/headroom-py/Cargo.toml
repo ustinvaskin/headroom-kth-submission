@@ -30,6 +30,9 @@ bench = false
 [features]
 default = []
 extension-module = ["pyo3/extension-module"]
+# Benchmark-only relay used to build a Python wheel against the preserved
+# character-based SimHash implementation in headroom-core.
+legacy-simhash-benchmark = ["headroom-core/legacy-simhash-benchmark"]
 
 [dependencies]
 headroom-core = { path = "../headroom-core" }

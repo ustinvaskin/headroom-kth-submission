@@ -1,0 +1,102 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 6
+Date: 2026-09-02
+Source: Captured from terminal results and EXPERIMENT_LOG.md during implementation.
+
+IMPLEMENTATION
+For ASCII input, production simhash lowercases once and hashes overlapping byte slices, avoiding Vec<char> construction and one temporary String per 4-gram. Non-ASCII input retains the original Unicode scalar-value implementation.
+
+CORRECTNESS COVERAGE
+- Empty, short, mixed-case, whitespace, punctuation, and control ASCII inputs.
+- 448 deterministic random printable-ASCII strings, lengths 0 through 255.
+- Accented Latin, lowercase-expanding Turkish I, German, Greek, CJK, emoji, and decomposed Unicode.
+- Test-only copy of the pre-optimization algorithm used as the reference.
+
+PARITY COMMAND
+cargo test -p headroom-core --lib simhash_matches_reference --no-default-features
+
+PARITY RESULT
+3 passed; 0 failed
+
+FULL ADAPTIVE-SIZER TEST COMMAND
+cargo test -p headroom-core --lib adaptive_sizer --no-default-features
+
+FULL TEST RESULT
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 867 filtered out
+
+ASCII SIMHASH COMPARISON COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- components/simhash_generation --baseline component-greedy
+
+ALL NINE ASCII SIMHASH CASES
+Distribution  Items  Candidate central  Criterion central change
+repetitive    100    317.36 us          -30.987%
+mixed         100    512.23 us          -30.571%
+diverse       100    706.11 us          -30.037%
+repetitive    1,000  3.1579 ms          -32.538%
+mixed         1,000  5.1316 ms          -30.754%
+diverse       1,000  7.0679 ms          -29.944%
+repetitive    5,000  15.754 ms          -32.149%
+mixed         5,000  25.829 ms          -30.137%
+diverse       5,000  36.016 ms          -28.623%
+
+All changes: p < 0.05. Criterion classified performance as improved.
+
+5,000-ITEM SIMHASH CONFIDENCE INTERVALS
+repetitive: 15.723-15.785 ms
+mixed:      25.708-26.014 ms
+diverse:    35.712-36.484 ms
+
+WHOLE-OPERATION COMPARISON COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- count_unique_simhash --baseline greedy
+
+ALL NINE WHOLE-OPERATION CASES
+Distribution  Items  Candidate central  Criterion central change
+repetitive    100    316.28 us          -30.661%
+mixed         100    516.33 us          -31.806%
+diverse       100    713.45 us          -29.795%
+repetitive    1,000  3.1891 ms          -31.299%
+mixed         1,000  5.1808 ms          -30.954%
+diverse       1,000  7.3506 ms          -28.433%
+repetitive    5,000  16.035 ms          -31.169%
+mixed         5,000  26.821 ms          -30.898%
+diverse       5,000  39.380 ms          -26.951%
+
+All changes: p < 0.05. Criterion classified performance as improved.
+
+5,000-ITEM WHOLE-OPERATION CONFIDENCE INTERVALS
+repetitive: 15.945-16.148 ms
+mixed:      26.764-26.890 ms
+diverse:    39.238-39.564 ms
+
+UNICODE GUARD - FIRST CANDIDATE
+Design: shared hash-and-vote helper in ASCII and non-ASCII branches.
+Reference: 12.431 ms
+Candidate: 13.958 ms
+Observed change: approximately +12.3% time
+Decision: rejected because regression exceeded the predefined 5% limit.
+
+UNICODE GUARD - REVISED CANDIDATE
+Design: early-return ASCII branch; original non-ASCII loop structure retained.
+Reference: 12.721 ms (12.699-12.742 ms)
+Candidate: 12.115 ms (12.077-12.167 ms)
+Observed central change: approximately -4.8% time
+Decision: no Unicode regression. Do not claim this as a Unicode optimization because separate compiled functions were compared.
+
+UNICODE COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- unicode_simhash_generation --save-baseline ascii-fast-path-unicode-revised
+
+QUALITY COMMANDS
+cargo fmt --all -- --check
+cargo clippy -p headroom-core --lib --bench adaptive_sizer --no-default-features -- -D warnings
+
+QUALITY RESULTS
+Formatting passed.
+Clippy passed with warnings denied.
+
+LIMITATIONS
+- Criterion baseline comparisons came from earlier runs on the same machine, not interleaved samples.
+- ASCII data was deterministic and synthetic.
+- No end-to-end coding-agent workload has been measured yet.
+- Unicode coverage is representative, not exhaustive.
+
+DECISION
+Accept the ASCII SimHash fast path. It preserves all tested fingerprints and improves complete count_unique_simhash time by approximately 27-31% at 5,000 ASCII records.

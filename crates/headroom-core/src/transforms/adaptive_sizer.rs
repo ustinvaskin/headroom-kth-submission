@@ -209,32 +209,57 @@ pub fn compute_unique_bigram_curve(items: &[&str]) -> Vec<usize> {
 /// 3. For each bit position 0..64, increment a vote counter when the
 ///    bit is set, decrement when clear.
 /// 4. Final fingerprint: bit `j` is set iff `votes[j] > 0` (strict).
+#[cfg(not(feature = "legacy-simhash-benchmark"))]
 pub fn simhash(text: &str) -> u64 {
+    if text.is_ascii() {
+        let lower = text.to_ascii_lowercase();
+        let bytes = lower.as_bytes();
+        let iter_count = if bytes.len() <= 3 { 1 } else { bytes.len() - 3 };
+        let mut votes = [0_i32; 64];
+
+        for index in 0..iter_count {
+            let end = (index + 4).min(bytes.len());
+            let digest = Md5::digest(&bytes[index..end]);
+            let hash = u64::from_be_bytes([
+                digest[0], digest[1], digest[2], digest[3], digest[4], digest[5], digest[6],
+                digest[7],
+            ]);
+
+            for (bit, vote) in votes.iter_mut().enumerate() {
+                if (hash >> bit) & 1 == 1 {
+                    *vote += 1;
+                } else {
+                    *vote -= 1;
+                }
+            }
+        }
+
+        return votes
+            .iter()
+            .enumerate()
+            .fold(0_u64, |fingerprint, (bit, &vote)| {
+                if vote > 0 {
+                    fingerprint | (1 << bit)
+                } else {
+                    fingerprint
+                }
+            });
+    }
+
     let lower = text.to_lowercase();
     let chars: Vec<char> = lower.chars().collect();
-    let n = chars.len();
+    let iter_count = if chars.len() <= 3 { 1 } else { chars.len() - 3 };
+    let mut votes = [0_i32; 64];
 
-    // Python: `range(max(1, len(text_lower) - 3))`. For n<=3, this is
-    // `range(1)` (single iteration on the whole string). For n>=4 it's
-    // `range(n-3)`.
-    let iter_count = if n <= 3 { 1 } else { n - 3 };
-
-    let mut votes: [i32; 64] = [0; 64];
-
-    for i in 0..iter_count {
-        // 4-character window starting at char index i. For short input,
-        // this is just the whole string padded by being shorter than 4.
-        let gram: String = chars.iter().skip(i).take(4).collect();
-
+    for index in 0..iter_count {
+        let gram: String = chars.iter().skip(index).take(4).collect();
         let digest = Md5::digest(gram.as_bytes());
-        // First 8 bytes of the 16-byte digest, big-endian → u64.
-        // Mirrors Python's `int(hex[:16], 16)` exactly.
-        let h = u64::from_be_bytes([
+        let hash = u64::from_be_bytes([
             digest[0], digest[1], digest[2], digest[3], digest[4], digest[5], digest[6], digest[7],
         ]);
 
-        for (j, vote) in votes.iter_mut().enumerate() {
-            if (h >> j) & 1 == 1 {
+        for (bit, vote) in votes.iter_mut().enumerate() {
+            if (hash >> bit) & 1 == 1 {
                 *vote += 1;
             } else {
                 *vote -= 1;
@@ -246,6 +271,38 @@ pub fn simhash(text: &str) -> u64 {
     for (j, &v) in votes.iter().enumerate() {
         if v > 0 {
             fingerprint |= 1 << j;
+        }
+    }
+    fingerprint
+}
+
+#[cfg(feature = "legacy-simhash-benchmark")]
+pub fn simhash(text: &str) -> u64 {
+    let lower = text.to_lowercase();
+    let chars: Vec<char> = lower.chars().collect();
+    let iter_count = if chars.len() <= 3 { 1 } else { chars.len() - 3 };
+    let mut votes = [0_i32; 64];
+
+    for index in 0..iter_count {
+        let gram: String = chars.iter().skip(index).take(4).collect();
+        let digest = Md5::digest(gram.as_bytes());
+        let hash = u64::from_be_bytes([
+            digest[0], digest[1], digest[2], digest[3], digest[4], digest[5], digest[6], digest[7],
+        ]);
+
+        for (bit, vote) in votes.iter_mut().enumerate() {
+            if (hash >> bit) & 1 == 1 {
+                *vote += 1;
+            } else {
+                *vote -= 1;
+            }
+        }
+    }
+
+    let mut fingerprint = 0_u64;
+    for (bit, &vote) in votes.iter().enumerate() {
+        if vote > 0 {
+            fingerprint |= 1 << bit;
         }
     }
     fingerprint
@@ -351,7 +408,105 @@ fn zlib_compressed_len(bytes: &[u8]) -> usize {
 mod tests {
     use super::*;
 
+    fn reference_simhash(text: &str) -> u64 {
+        let lower = text.to_lowercase();
+        let chars: Vec<char> = lower.chars().collect();
+        let iter_count = if chars.len() <= 3 { 1 } else { chars.len() - 3 };
+        let mut votes = [0_i32; 64];
+
+        for index in 0..iter_count {
+            let gram: String = chars.iter().skip(index).take(4).collect();
+            let digest = Md5::digest(gram.as_bytes());
+            let hash = u64::from_be_bytes([
+                digest[0], digest[1], digest[2], digest[3], digest[4], digest[5], digest[6],
+                digest[7],
+            ]);
+
+            for (bit, vote) in votes.iter_mut().enumerate() {
+                if (hash >> bit) & 1 == 1 {
+                    *vote += 1;
+                } else {
+                    *vote -= 1;
+                }
+            }
+        }
+
+        votes
+            .iter()
+            .enumerate()
+            .fold(0_u64, |fingerprint, (bit, &vote)| {
+                if vote > 0 {
+                    fingerprint | (1 << bit)
+                } else {
+                    fingerprint
+                }
+            })
+    }
+
     // ---------- simhash (verified against Python reference) ----------
+
+    #[test]
+    fn simhash_matches_reference_for_ascii_boundaries_and_case() {
+        let cases = [
+            "",
+            "a",
+            "ab",
+            "abc",
+            "abcd",
+            "abcde",
+            "abcdef",
+            "ABCDEFGH",
+            "MiXeD CaSe 123 !@#$%^&*()",
+            "line one\nline two\tend",
+            "\0\x01\x7f",
+        ];
+
+        for text in cases {
+            assert_eq!(simhash(text), reference_simhash(text), "input: {text:?}");
+        }
+    }
+
+    #[test]
+    fn simhash_matches_reference_for_deterministic_random_ascii() {
+        let mut state = 0x5eed_2026_0902_cafe_u64;
+
+        for length in (0..=8).chain([15, 31, 63, 127, 255]) {
+            for _ in 0..32 {
+                let bytes: Vec<u8> = (0..length)
+                    .map(|_| {
+                        state = state
+                            .wrapping_mul(6_364_136_223_846_793_005)
+                            .wrapping_add(1_442_695_040_888_963_407);
+                        32 + ((state >> 32) % 95) as u8
+                    })
+                    .collect();
+                let text = String::from_utf8(bytes).expect("generated ASCII");
+                assert_eq!(
+                    simhash(&text),
+                    reference_simhash(&text),
+                    "length: {length}, input: {text:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn simhash_matches_reference_for_unicode() {
+        let cases = [
+            "café",
+            "CAＦÉ",
+            "İstanbul",
+            "ẞtraße",
+            "Σίσυφος",
+            "数据库连接失败",
+            "👩🏽‍💻 works",
+            "e\u{301}cole",
+        ];
+
+        for text in cases {
+            assert_eq!(simhash(text), reference_simhash(text), "input: {text:?}");
+        }
+    }
 
     #[test]
     fn simhash_empty_string() {

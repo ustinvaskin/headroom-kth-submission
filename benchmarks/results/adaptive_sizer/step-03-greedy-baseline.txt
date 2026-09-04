@@ -1,0 +1,38 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 3
+Date: 2026-09-02
+Source: Reconstructed from EXPERIMENT_LOG.md.
+
+COMMAND
+cargo bench -p headroom-core --bench adaptive_sizer --no-default-features -- --save-baseline greedy
+
+ENVIRONMENT
+Apple Silicon macOS
+Rust/Cargo 1.95.0
+Criterion 0.8.2
+Plotters backend (Gnuplot unavailable)
+
+FULL count_unique_simhash BASELINE
+Distribution  Items  Confidence interval     Central throughput
+repetitive    100    461.89-463.08 us       216.22 Kelem/s
+repetitive    1,000  4.6361-4.6478 ms       215.43 Kelem/s
+repetitive    5,000  23.271-23.323 ms        214.63 Kelem/s
+mixed         100    749.61-754.02 us       133.07 Kelem/s
+mixed         1,000  7.4933-7.5139 ms       133.27 Kelem/s
+mixed         5,000  38.573-39.117 ms        128.82 Kelem/s
+diverse       100    1.0145-1.0169 ms       98.456 Kelem/s
+diverse       1,000  10.263-10.279 ms        97.362 Kelem/s
+diverse       5,000  53.867-53.950 ms        92.748 Kelem/s
+
+DISTRIBUTION CHECK
+Items  Repetitive clusters  Mixed clusters  Diverse clusters
+100    3                    53              100
+1,000  3                    503             1,000
+
+WARNINGS
+Criterion reported that diverse/100 and diverse/5000 could not complete 100 samples within the default five-second target. It still collected 100 samples and reported intervals.
+
+INTERPRETATION
+From 1,000 to 5,000 items, diverse time increased about 5.25x for 5x more input. Throughput fell about 4.7%. SimHash generation and other linear work appeared to dominate the quadratic representative scan through 5,000 records.
+
+DECISION
+Do not change clustering yet. Separate fingerprint generation from clustering before selecting an optimization.

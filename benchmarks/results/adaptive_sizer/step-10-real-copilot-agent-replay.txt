@@ -1,0 +1,53 @@
+Real Copilot CLI agent replay: 2026-09-02
+
+Environment
+- Apple M4 MacBook Air, 24 GB, macOS 26.6.2
+- GitHub Copilot CLI 1.0.82, authenticated Copilot session
+- Copilot Free plan, Auto model selection
+- CPython 3.12.14
+- Two isolated release wheels built from the same local source tree:
+  legacy: headroom-core/legacy-simhash-benchmark enabled
+  optimized: feature disabled
+
+Task provenance
+Copilot Auto completed three deterministic repair tasks. Each task required it
+to run inspect_context.py, edit only the implementation, and run the supplied
+test file. All task tests passed.
+
+- median.json: fix even-length median; test_statistics.py passed; statistics.py changed.
+- currency.json: fix negative-cent formatting; test_currency.py passed; currency.py changed.
+- slug.json: fix punctuation and separator normalization; test_slug.py passed; slug.py changed.
+
+The complete JSON arrays printed by inspect_context.py were captured from the
+Copilot tool-result transcripts. benchmarks/scenarios/copilot_agent_tool_outputs.py
+regenerates each array and rejects a SHA-256 mismatch.
+
+Scope
+The replay constructs SmartCrusher.without_compaction() to measure the
+SimHash-dependent adaptive sampling fallback directly. It is not a claim that
+every production live-zone result avoids SmartCrusher's lossless-first stage.
+The default live-zone route is covered separately by step-07. No production
+traffic telemetry was collected, so this evidence does not establish fallback
+frequency in deployed workloads.
+
+Command, run from a directory outside the source checkout:
+  $LEGACY_PYTHON $HEADROOM_ROOT/benchmarks/copilot_agent_replay.py \
+    --captured-corpus --warmup 50 --iterations 500 > legacy-replay.json
+  $OPTIMIZED_PYTHON $HEADROOM_ROOT/benchmarks/copilot_agent_replay.py \
+    --captured-corpus --warmup 50 --iterations 500 > optimized-replay.json
+
+Results, median of 500 post-warmup in-process calls
+
+payload        input SHA-256                                                     legacy ms  optimized ms  change
+median.json    ea724acd911a671313c1f0d9f45262b7507d1b1e38abfabbfefd23a34f444181     1.823749      1.392854  -23.63%
+currency.json  af5119c47eb977f78fdfbcb19a3817214c68255235773b8cc42172cac3a99b38     2.229625      1.670729  -25.07%
+slug.json      911d3f45d8790a48f678eccb0e437634494c5ad98f2d05b44d476001710c6ebd     2.111458      1.579396  -25.20%
+
+Equivalence checks
+- Each payload selected smart_sample and retained 15 of 100 records.
+- Legacy and optimized outputs had identical SHA-256 values:
+  median:   c0a7b104a5344ae5624c2975e5b244ae81394d87554f310f333b96a60a2a61b7
+  currency: 90c4ea33b186819e6ba10fce2b58049aa1806df4283ec4b0d0878d631876479c
+  slug:     e91a0b66bebdd15a5319d200d17374cfedd0d14dde119633bd8117f701bbb87f
+- The comparison script asserted equal input hash, output hash, strategy, and
+  output record count before calculating the percentages.

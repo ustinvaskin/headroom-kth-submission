@@ -188,6 +188,9 @@ ort = { version = "=2.0.0-rc.12", default-features = false, optional = true, fea
 # of this change — flagged in the PR).
 default = ["ml"]
 ml = ["dep:ort", "dep:fastembed", "dep:magika"]
+# Benchmark-only control for reproducible before/after adaptive-sizer measurements.
+# Production builds must leave this disabled.
+legacy-simhash-benchmark = []
 # Compile in the Redis CCR backend. Enable for multi-worker deployments
 # that want a shared CCR store with no sticky-session at the LB. The
 # SQLite backend (always compiled) is the production default for
@@ -209,4 +212,12 @@ harness = false
 
 [[bench]]
 name = "auth_mode"
+harness = false
+
+[[bench]]
+name = "adaptive_sizer"
+harness = false
+
+[[bench]]
+name = "adaptive_sizer_large"
 harness = false

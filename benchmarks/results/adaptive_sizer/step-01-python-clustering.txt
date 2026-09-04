@@ -1,0 +1,53 @@
+ADAPTIVE SIZER EXPERIMENT - STEP 1
+Date: 2026-09-02
+Source: Reconstructed from EXPERIMENT_LOG.md; original terminal command/output was not preserved.
+
+QUESTION
+Could the greedy fingerprint-comparison loop become slow when many records are different from each other?
+
+ENVIRONMENT
+macOS
+Python 3.13.14
+Seed: 20260902
+
+ISOLATED GREEDY CLUSTERING
+Fingerprints  Clusters  Time
+250           250       3.220 ms
+500           500       10.179 ms
+1,000         1,000     24.824 ms
+2,000         2,000     57.409 ms
+4,000         4,000     194.729 ms
+8,000         8,000     786.669 ms
+
+INDEXED PROTOTYPE
+Fingerprints  Greedy       Indexed      Speedup
+1,000         12.267 ms    0.958 ms     12.8x
+2,000         49.353 ms    1.955 ms     25.2x
+4,000         198.704 ms   4.588 ms     43.3x
+8,000         804.502 ms   8.304 ms     96.9x
+
+ALGORITHM
+
+Two fingerprints are considered similar when they differ by at most three bits.
+
+Each fingerprint has 64 bits. The prototype splits it into four equal 16-bit parts.
+
+If two fingerprints differ in only three bits, at least one of those four parts
+must still be exactly the same. There are four parts but only three changed bits,
+so one part cannot have changed.
+
+The prototype stores each group representative under its four parts. For a new
+fingerprint, it looks up representatives that share one of those parts, then
+runs the normal exact Hamming-distance check only on those candidates.
+
+It still checks candidates in their original order, so it keeps the same
+“first matching group” behavior as the original code.
+
+CAVEATS
+- Python prototype, not production Rust.
+- Fingerprint generation excluded.
+- Memory not measured.
+- Prototype parity covered deterministic random fingerprints and one-bit near-duplicates, not exhaustive inputs.
+
+DECISION
+Promising but not accepted. Establish a production Rust whole-function baseline before changing the algorithm.
